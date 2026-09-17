@@ -64,6 +64,8 @@ REQUIRED_FIELDS: Dict[str, List[str]] = {
     "FAQPage": ["@type", "@id", "mainEntity"],
     "Question": ["@type", "name", "acceptedAnswer"],
     "Answer": ["@type", "text"],
+    # startDate es requerido por Google en Event, no solo recomendado.
+    "Event": ["@type", "@id", "name", "startDate"],
 }
 
 # Entidad HTML que sobrevivió a la extracción (venía doble-escapada en el

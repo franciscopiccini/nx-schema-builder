@@ -58,9 +58,17 @@ def build_event_graph(
     if ctx.image_url:
         event_node["image"] = ctx.image_url
 
+    # startDate es el único campo que Google exige siempre en Event. Sin él, la
+    # página se reporta en Search Console como "markup con errores" y el Event no
+    # se elige para resultados enriquecidos. No hay default razonable: la fecha
+    # depende de la campaña, así que se exige al caller en lugar de inventarla.
     start_date = cfg.get("start_date")
-    if start_date:
-        event_node["startDate"] = start_date
+    if not start_date:
+        raise ValueError(
+            "event_defaults['start_date'] es obligatorio: Google exige startDate "
+            "en Event (formato ISO 8601, ej. '2026-11-30T00:00:00-03:00')."
+        )
+    event_node["startDate"] = start_date
 
     end_date = cfg.get("end_date")
     if end_date:
