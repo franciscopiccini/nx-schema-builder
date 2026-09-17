@@ -409,6 +409,31 @@ OFFER_CATALOGS: Dict[str, Dict[str, object]] = {
             },
         ],
     },
+    "comercios": {
+        "name": "Catálogo de Soluciones de Cobro",
+        "items": [
+            {
+                "name": "Cobro Tap",
+                "url": "https://www.naranjax.com/cobro-tap-comercios",
+                "id_suffix": "#PaymentService",
+            },
+            {
+                "name": "Código QR",
+                "url": "https://www.naranjax.com/codigo-qr-comercios",
+                "id_suffix": "#PaymentService",
+            },
+            {
+                "name": "Plan Z para negocios",
+                "url": "https://www.naranjax.com/planz-negocios",
+                "id_suffix": "#PaymentService",
+            },
+            {
+                "name": "Cuenta Negocio",
+                "url": "https://www.naranjax.com/cuenta-negocio",
+                "id_suffix": "#bankaccount",
+            },
+        ],
+    },
     "cuenta": {
         "name": "Catálogo de Cuentas",
         "items": [

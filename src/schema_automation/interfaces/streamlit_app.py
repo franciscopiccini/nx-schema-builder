@@ -27,6 +27,7 @@ OFFER_CATALOG_OPTIONS: List[Tuple[str, str]] = [
     ("Tarjeta de crédito", "tarjeta_credito"),
     ("Seguros", "seguros"),
     ("Cuenta", "cuenta"),
+    ("Comercios", "comercios"),
 ]
 
 DEFAULT_GENERATE_KWARGS: Dict[str, object] = {
