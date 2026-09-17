@@ -255,7 +255,7 @@ LOAN_OR_CREDIT_DEFAULTS = {
     "amount": {
         "currency": "ARS",
         "minValue": 10000,
-        "maxValue": 9000000,
+        "maxValue": 20000000,
     },
     "currency": "ARS",
     "loan_term": {
@@ -264,13 +264,13 @@ LOAN_OR_CREDIT_DEFAULTS = {
         "unitText": "MONTH",
     },
     "interest_rate": {
-        "minValue": 55.0,
-        "maxValue": 153.0,
+        "minValue": 45.0,
+        "maxValue": 149.0,
         "unitText": "PERCENT",
     },
     "annual_percentage_rate": {
-        "minValue": 91.11,
-        "maxValue": 459.39,
+        "minValue": 70.32,
+        "maxValue": 436.38,
         "unitText": "PERCENT",
     },
     "loan_repayment_form": {
