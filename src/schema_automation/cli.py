@@ -7,6 +7,7 @@ import json
 import sys
 from typing import Any, Dict
 
+from .config import TOPICAL_ENTITY_CHOICES
 from .service.workflow import generate_schema
 
 
@@ -35,12 +36,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Clave del catálogo de offers a adjuntar",
     )
     parser.add_argument(
+        "--topical-entity",
+        dest="topical_entity",
+        choices=sorted(TOPICAL_ENTITY_CHOICES),
+        help=(
+            "Entidad temática (about) precisa, para cuando el default del tipo "
+            "es más genérico que la página (ej. una landing de débito)"
+        ),
+    )
+    parser.add_argument(
         "--set",
         dest="overrides",
         action="append",
         default=[],
         metavar="clave=valor",
         help="Override simple (se acumula y se serializa como cadenas).",
+    )
+    parser.add_argument(
+        "--start-date",
+        dest="start_date",
+        help="Fecha de inicio del evento en ISO 8601. Obligatorio con --schema-type event.",
+    )
+    parser.add_argument(
+        "--end-date",
+        dest="end_date",
+        help="Fecha de fin del evento en ISO 8601 (opcional, solo para event).",
     )
     parser.add_argument(
         "--script",
@@ -69,6 +89,19 @@ def main(argv: list[str] | None = None) -> int:
     kwargs.update(overrides)
     if args.offer_catalog_key:
         kwargs["offer_catalog_key"] = args.offer_catalog_key
+    if args.topical_entity:
+        kwargs["topical_entity"] = args.topical_entity
+
+    # build_event_graph espera un dict anidado, que --set no puede expresar
+    # (solo acumula pares clave=valor planos). Por eso las fechas entran por
+    # flags propios y se arman acá como event_defaults.
+    event_defaults: Dict[str, Any] = {}
+    if args.start_date:
+        event_defaults["start_date"] = args.start_date
+    if args.end_date:
+        event_defaults["end_date"] = args.end_date
+    if event_defaults:
+        kwargs["event_defaults"] = event_defaults
 
     result = generate_schema(
         args.url,

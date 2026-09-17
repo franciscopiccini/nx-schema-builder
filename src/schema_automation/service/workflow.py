@@ -7,7 +7,7 @@ import re
 from copy import deepcopy
 from typing import Any, Dict, Optional
 
-from ..config import TOPICAL_ENTITIES
+from ..config import TOPICAL_ENTITIES, TOPICAL_ENTITY_CHOICES
 from ..extraction import extract_basic_meta, extract_body_text, extract_faqs
 from ..extraction.html import ensure_soup
 from ..infrastructure.http import fetch_html
@@ -23,14 +23,28 @@ def _schema_type_key(schema_type: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", schema_type).lower().replace("-", "_").strip()
 
 
-def _attach_topical_entity(graph_nodes: list, schema_key: str) -> None:
+def _attach_topical_entity(
+    graph_nodes: list, schema_key: str, topical_entity: Optional[str] = None
+) -> None:
     """Adjunta la entidad temática (`about`) al nodo WebPage del grafo.
 
     `about`/`mentions` son propiedades exclusivas de CreativeWork, por eso solo
     se aplican a WebPage (nunca a Product/PaymentCard/etc.). No hace nada si el
     tipo no tiene entidad mapeada o si el grafo no incluye un nodo WebPage.
+
+    `topical_entity` es una clave de TOPICAL_ENTITY_CHOICES que reemplaza al
+    default del tipo, para las páginas donde el default es demasiado genérico
+    (p. ej. una landing de débito bajo el tipo payment_card).
     """
-    entity = TOPICAL_ENTITIES.get(schema_key)
+    if topical_entity:
+        entity = TOPICAL_ENTITY_CHOICES.get(topical_entity)
+        if entity is None:
+            raise ValueError(
+                f"topical_entity '{topical_entity}' no existe. "
+                f"Opciones: {', '.join(sorted(TOPICAL_ENTITY_CHOICES))}."
+            )
+    else:
+        entity = TOPICAL_ENTITIES.get(schema_key)
     if not entity:
         return
     webpage = next(
@@ -68,8 +82,10 @@ def build_schema_from_url(
     financial_product_defaults: Optional[Dict[str, Any]] = None,
     investment_defaults: Optional[Dict[str, Any]] = None,
     blog_defaults: Optional[Dict[str, Any]] = None,
+    event_defaults: Optional[Dict[str, Any]] = None,
     offer_catalog_key: Optional[str] = None,
     aggregate_rating: Optional[Dict[str, Any]] = None,
+    topical_entity: Optional[str] = None,
     validate: bool = False,
 ) -> SchemaRecord:
     """
@@ -87,8 +103,11 @@ def build_schema_from_url(
         financial_product_defaults: Configuración para FinancialProduct.
         investment_defaults: Configuración para InvestmentOrDeposit.
         blog_defaults: Configuración para BlogPosting.
+        event_defaults: Configuración para Event. Requiere start_date (ISO 8601).
         offer_catalog_key: Clave del catálogo de ofertas a incluir.
         aggregate_rating: Rating agregado personalizado.
+        topical_entity: Clave de TOPICAL_ENTITY_CHOICES para reemplazar la
+            entidad `about` por defecto del tipo (ej. "tarjeta_debito").
         validate: Si True, valida el schema generado.
 
     Returns:
@@ -141,9 +160,10 @@ def build_schema_from_url(
         financial_product_defaults=financial_product_defaults,
         investment_defaults=investment_defaults,
         blog_defaults=blog_defaults,
+        event_defaults=event_defaults,
     )
 
-    _attach_topical_entity(graph_nodes, key)
+    _attach_topical_entity(graph_nodes, key, topical_entity)
 
     if offer_catalog_key:
         catalog_node, provider_org = build_offer_catalog_node(context.page_url, offer_catalog_key)
@@ -201,8 +221,10 @@ def generate_schema(
     financial_product_defaults: Optional[Dict[str, Any]] = None,
     investment_defaults: Optional[Dict[str, Any]] = None,
     blog_defaults: Optional[Dict[str, Any]] = None,
+    event_defaults: Optional[Dict[str, Any]] = None,
     offer_catalog_key: Optional[str] = None,
     aggregate_rating: Optional[Dict[str, Any]] = None,
+    topical_entity: Optional[str] = None,
     save: bool = False,
     csv_path: str = "extracciones.csv",
     jsonl_path: str = "schemas.jsonl",
@@ -225,8 +247,11 @@ def generate_schema(
         financial_product_defaults: Configuración para FinancialProduct.
         investment_defaults: Configuración para InvestmentOrDeposit.
         blog_defaults: Configuración para BlogPosting.
+        event_defaults: Configuración para Event. Requiere start_date (ISO 8601).
         offer_catalog_key: Clave del catálogo de ofertas a incluir.
         aggregate_rating: Rating agregado personalizado.
+        topical_entity: Clave de TOPICAL_ENTITY_CHOICES para reemplazar la
+            entidad `about` por defecto del tipo (ej. "tarjeta_debito").
         save: Si True, guarda los resultados en archivos.
         csv_path: Ruta del archivo CSV de salida.
         jsonl_path: Ruta del archivo JSONL de salida.
@@ -253,8 +278,10 @@ def generate_schema(
         financial_product_defaults=financial_product_defaults,
         investment_defaults=investment_defaults,
         blog_defaults=blog_defaults,
+        event_defaults=event_defaults,
         offer_catalog_key=offer_catalog_key,
         aggregate_rating=aggregate_rating,
+        topical_entity=topical_entity,
         validate=validate,
     )
 

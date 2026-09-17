@@ -162,10 +162,14 @@ WEBPAGE_DEFAULTS = {
 #   - payment_service: sin entidad de Wikidata con sentido limpio.
 #   - blog_posting: el `about` de un artículo es su tema real, no un concepto genérico.
 TOPICAL_ENTITIES: Dict[str, Dict[str, str]] = {
+    # Entidad neutral: el tipo payment_card cubre crédito y débito, así que el
+    # default no puede afirmar "tarjeta de crédito" (era incorrecto en
+    # /tarjeta-de-debito). Una landing de crédito puede pasar la entidad
+    # precisa vía `topical_entity` (Q161380 está en TOPICAL_ENTITY_CHOICES).
     "payment_card": {
-        "@id": "https://www.wikidata.org/wiki/Q161380",
-        "name": "Tarjeta de crédito",
-        "sameAs": "https://es.wikipedia.org/wiki/Tarjeta_de_cr%C3%A9dito",
+        "@id": "https://www.wikidata.org/wiki/Q1436963",
+        "name": "Tarjeta de pago",
+        "sameAs": "https://es.wikipedia.org/wiki/Tarjeta_de_pago",
     },
     "loan_or_credit": {
         "@id": "https://www.wikidata.org/wiki/Q182076",
@@ -191,6 +195,22 @@ TOPICAL_ENTITIES: Dict[str, Dict[str, str]] = {
         # Q15809678 no tiene artículo en Wikipedia ES → sin sameAs.
         "@id": "https://www.wikidata.org/wiki/Q15809678",
         "name": "Producto financiero",
+    },
+}
+
+# Entidades temáticas precisas, para cuando el default del tipo es más genérico
+# que la página. Se pasan por nombre vía `topical_entity` y reemplazan al
+# default. Mismo criterio que TOPICAL_ENTITIES: Wikidata + Wikipedia ES.
+TOPICAL_ENTITY_CHOICES: Dict[str, Dict[str, str]] = {
+    "tarjeta_credito": {
+        "@id": "https://www.wikidata.org/wiki/Q161380",
+        "name": "Tarjeta de crédito",
+        "sameAs": "https://es.wikipedia.org/wiki/Tarjeta_de_cr%C3%A9dito",
+    },
+    "tarjeta_debito": {
+        "@id": "https://www.wikidata.org/wiki/Q13499",
+        "name": "Tarjeta de débito",
+        "sameAs": "https://es.wikipedia.org/wiki/Tarjeta_de_d%C3%A9bito",
     },
 }
 
