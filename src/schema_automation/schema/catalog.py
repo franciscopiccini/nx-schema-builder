@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from copy import deepcopy
 from typing import Any, Dict, Optional, Tuple
 
@@ -17,7 +18,14 @@ def build_offer_catalog_node(
     if not catalog:
         return None, None
 
-    node_id_suffix = re.sub(r"[^0-9A-Za-z]+", "-", catalog["name"]).strip("-") or catalog_key
+    # Se translitera a ASCII antes de slugificar: sin esto "Catálogo" queda
+    # como "Cat-logo", porque la vocal acentuada no matchea [0-9A-Za-z].
+    ascii_name = (
+        unicodedata.normalize("NFKD", str(catalog["name"]))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+    node_id_suffix = re.sub(r"[^0-9A-Za-z]+", "-", ascii_name).strip("-") or catalog_key
     node_id = f"{page_url}#OfferCatalog{node_id_suffix}"
 
     item_list = []
