@@ -399,7 +399,7 @@ OFFER_CATALOGS: Dict[str, Dict[str, object]] = {
             },
             {
                 "name": "Seguro para Celulares",
-                "url": "https://www.naranjax.com/seguros/celulares",
+                "url": "https://www.naranjax.com/seguros/celular",
                 "id_suffix": "#producto",
             },
             {
