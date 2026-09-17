@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional
 
 from ..config import (
     FINANCIAL_PRODUCT_DEFAULTS,
-    FINANCIAL_PRODUCT_ZERO_RATES,
     default_price_valid_until,
 )
 from ..models import SchemaContext
@@ -44,7 +43,7 @@ def build_financial_product_graph(
     provider_cfg = deep_merge(provider_defaults, provider_overrides)
     provider = resolve_organization(provider_cfg, provider_defaults.get("org_key", "tarjeta_naranja"))
 
-    rates = overrides.get("rates", FINANCIAL_PRODUCT_ZERO_RATES)
+    rates = overrides.get("rates", {})
     rate_parts = []
     for code, value in (rates or {}).items():
         if isinstance(value, (int, float)):
@@ -74,7 +73,7 @@ def build_financial_product_graph(
         "description_template", offer_defaults.get("description_template", "Características financieras: {rates_text}.")
     )
     offer_description = offer_overrides.get("description")
-    if not offer_description:
+    if not offer_description and description_template and rates_text:
         offer_description = description_template.format(rates_text=rates_text)
 
     identifier = overrides.get("identifier", defaults.get("identifier"))
@@ -114,6 +113,15 @@ def build_financial_product_graph(
 
     price_valid_until = default_price_valid_until()
 
+    price_spec = {
+        "@type": "UnitPriceSpecification",
+        "billingIncrement": billing_increment,
+        "price": min_price,
+        "priceCurrency": price_currency,
+    }
+    if offer_description:
+        price_spec["description"] = offer_description
+
     offer = build_offer_node(
         ctx.page_url,
         offer_id,
@@ -125,13 +133,7 @@ def build_financial_product_graph(
             "itemOffered": {"@id": product_id},
             "priceValidUntil": price_valid_until,
             "price": min_price,
-            "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "billingIncrement": billing_increment,
-                "price": min_price,
-                "priceCurrency": price_currency,
-                "description": offer_description,
-            },
+            "priceSpecification": price_spec,
         },
     )
     graph.append(offer)

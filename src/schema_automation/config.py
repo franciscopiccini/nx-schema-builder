@@ -292,7 +292,11 @@ FINANCIAL_PRODUCT_DEFAULTS = {
         "area_served": "AR",
         "valid_from_offset": 0,
         "valid_through_offset": 30,
-        "description_template": "Hasta 3 cuotas sin interés. {rates_text}.",
+        # Sin plantilla por defecto: afirmar cuotas o tasas sobre un producto
+        # financiero genérico es incorrecto (p. ej. compra de dólares, que no
+        # tiene financiación). Cada landing con financiación real pasa su
+        # propio "rates" o "description".
+        "description_template": "",
     },
     "product": {
         "id_suffix": "#financial-product",
