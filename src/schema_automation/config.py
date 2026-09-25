@@ -23,6 +23,10 @@ def default_price_valid_until(days: int = DEFAULT_PRICE_VALIDITY_DAYS) -> str:
 
 DEFAULT_LANGUAGE = "es-AR"
 
+# Marca del nodo Product. Google exige `brand` como `Brand` (no `Organization`)
+# y lo usa como identificador del producto cuando no hay GTIN.
+PRODUCT_BRAND = {"@type": "Brand", "name": "Naranja X"}
+
 # Entidades de identidad de la organización (sameAs) --------------------------
 # Solo identificadores estables. Wikidata (Q124313742) es el sucesor oficial de
 # Freebase; Wikipedia es estable. Se descartan a propósito los Google Knowledge

@@ -93,6 +93,7 @@ def build_insurance_agency_graph(
             "name": offer_name,
             "priceCurrency": offer_price_currency,
             "availability": offer_availability,
+            "validFrom": offer_overrides.get("valid_from", today.isoformat()),
             "areaServed": offer_area_served,
             "eligibleRegion": offer_eligible_region,
             "priceValidUntil": price_valid_until,

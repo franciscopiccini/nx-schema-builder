@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from ..config import (
     DEFAULT_LANGUAGE,
     ORGANIZATIONS,
+    PRODUCT_BRAND,
     WEBPAGE_DEFAULTS,
 )
 from ..models import SchemaContext
@@ -133,7 +134,7 @@ def build_product_node(
     extra: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Construye un nodo Product genérico."""
-    node: Dict[str, Any] = {"@type": "Product", "@id": node_id, "name": name}
+    node: Dict[str, Any] = {"@type": "Product", "@id": node_id, "name": name, "brand": deepcopy(PRODUCT_BRAND)}
     if image_url:
         node["image"] = image_url
     if aggregate_rating:

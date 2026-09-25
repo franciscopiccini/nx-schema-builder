@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Dict, List
 
 from ..config import default_price_valid_until
@@ -54,6 +55,7 @@ def build_payment_card_graph(ctx: SchemaContext, **_) -> List[Dict[str, Any]]:
             "price": "0",
             "priceCurrency": "ARS",
             "availability": "https://schema.org/InStock",
+            "validFrom": date.today().isoformat(),
             "areaServed": "AR",
             "priceValidUntil": price_valid_until,
         },

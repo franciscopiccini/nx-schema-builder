@@ -65,6 +65,7 @@ def build_payment_service_graph(
             "areaServed": deepcopy(area_served),
             "validFrom": valid_from,
             "validThrough": valid_through,
+            "availability": offer_cfg.get("availability", "https://schema.org/InStock"),
             "availabilityStarts": availability_starts,
             "eligibleRegion": offer_cfg.get("eligible_region", "AR"),
             "priceValidUntil": price_valid_until,
@@ -73,9 +74,6 @@ def build_payment_service_graph(
     )
     graph.append(offer)
 
-    brand_ref = organization_reference(provider)
-    brand_ref["@type"] = "Organization"
-
     product = build_product_node(
         ctx.page_url,
         f"{ctx.page_url}#Product",
@@ -83,7 +81,7 @@ def build_payment_service_graph(
         ctx.image_url,
         ctx.aggregate_rating,
         description=ctx.description,
-        extra={"url": ctx.page_url, "brand": brand_ref, "offers": {"@id": f"{ctx.page_url}#Offer"}},
+        extra={"url": ctx.page_url, "offers": {"@id": f"{ctx.page_url}#Offer"}},
     )
     graph.append(product)
 

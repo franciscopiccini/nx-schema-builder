@@ -128,6 +128,7 @@ def build_financial_product_graph(
         {
             "priceCurrency": price_currency,
             "areaServed": offer_area_served,
+            "availability": offer_overrides.get("availability", "https://schema.org/InStock"),
             "validFrom": valid_from,
             "validThrough": valid_through,
             "itemOffered": {"@id": product_id},

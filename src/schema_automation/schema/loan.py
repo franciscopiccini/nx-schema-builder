@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Dict, List, Optional
 
 from ..config import LOAN_OR_CREDIT_DEFAULTS, default_price_valid_until
@@ -122,6 +123,7 @@ def build_loan_or_credit_graph(
             "priceCurrency": "ARS",
             "areaServed": "AR",
             "availability": "https://schema.org/InStock",
+            "validFrom": date.today().isoformat(),
             "priceValidUntil": price_valid_until,
             "price": offer_price,
         },

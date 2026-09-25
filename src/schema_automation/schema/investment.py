@@ -144,6 +144,7 @@ def build_investment_or_deposit_graph(
         offer_id,
         {
             "name": offer_name,
+            "price": offer_overrides.get("price", offer_defaults_cfg.get("price", "0")) or "0",
             "priceCurrency": offer_price_currency,
             "areaServed": offer_area_served,
             "eligibleRegion": offer_eligible_region,
