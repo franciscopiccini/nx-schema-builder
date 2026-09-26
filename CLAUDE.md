@@ -1,54 +1,92 @@
-# CLAUDE.md
+# fintech-schema-builder
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Genera JSON-LD de Schema.org para las landings de Naranja X. Descarga una URL, extrae metadata (título, descripción, imagen, FAQs, texto) y arma un `@graph` según el tipo de producto. Se usa por CLI, API Python, Streamlit o servidor MCP. Docs y comentarios en español.
 
-## What This Project Does
+## Qué archivo usar
 
-Automated Schema.org JSON-LD generation for Naranja X fintech products. Fetches a URL, extracts metadata (title, description, FAQs), and builds structured data graphs for 8 product types. Three interfaces: CLI, Python API, and Streamlit UI. Documentation and comments are in Spanish (Argentine market).
+| Tarea | Archivo |
+|---|---|
+| Generar el schema de una landing | `python -m schema_automation.cli` (ver [Comandos](#comandos)) |
+| Saber qué regla de modelado respetar al tocar un builder | [docs/reglas-jsonld.md](docs/reglas-jsonld.md) |
+| Ver qué propiedades faltan y en qué orden atacarlas | [docs/analisis/2026-06_auditoria-schemas.md](docs/analisis/2026-06_auditoria-schemas.md) |
+| Ver un JSON-LD completo de referencia para PaymentCard | [docs/analisis/2026-06_caso-payment-card-tarjeta-naranja.md](docs/analisis/2026-06_caso-payment-card-tarjeta-naranja.md) |
+| Cambiar organizaciones, tasas, montos o catálogos | [src/schema_automation/config.py](src/schema_automation/config.py) |
+| Agregar un tipo de schema | Nuevo `build_*_graph(ctx, **kwargs)` en `schema/`, registrado en `SCHEMA_BUILDERS` de [schema/\_\_init\_\_.py](src/schema_automation/schema/__init__.py) |
+| Agregar un catálogo de ofertas | `OFFER_CATALOGS` en [config.py](src/schema_automation/config.py) |
+| Usar el generador desde otra carpeta | [mcp_server.py](mcp_server.py) |
+| Cambiar la validación | [validation/validator.py](src/schema_automation/validation/validator.py) |
 
-## Commands
+## Comandos
 
 ```bash
-# Install
-pip install -e .          # production
-pip install -e .[dev]     # with pytest + requests-mock
+pip install -e .            # producción
+pip install -e .[dev]       # + pytest y requests-mock
+pip install -e .[mcp]       # + SDK de MCP (>=2.0), solo para mcp_server.py
 
-# Run tests (CI uses Python 3.11)
-pytest
+python -m schema_automation.cli URL "Nombre" --schema-type payment_card --schema-only
+python -m schema_automation.cli URL "Nombre" --schema-type payment_card --script
+python -m schema_automation.cli URL "Nombre" --schema-type event --start-date 2026-11-30T00:00:00-03:00
+python -m schema_automation.cli --help
 
-# CLI
-python -m schema_automation.cli https://www.naranjax.com "Naranja X" --schema-type payment_card --schema-only
-python -m schema_automation.cli https://www.naranjax.com "Naranja X" --schema-type payment_card --script
-
-# Streamlit app
 streamlit run streamlit_app.py
+
+claude mcp add schemas --scope local -- <repo>/.venv/bin/python <repo>/mcp_server.py
 ```
 
-## Architecture
+Flags del CLI: `--schema-type`, `--offer-catalog`, `--topical-entity {tarjeta_credito,tarjeta_debito}`, `--set clave=valor`, `--start-date`, `--end-date`, `--script`, `--schema-only`.
 
-**Pipeline flow:** CLI/Streamlit → `workflow.py` → fetch HTML → extract metadata → build schema graph → validate → output
+API Python: `generate_schema(url, nombre, schema_type=..., schema_only=..., as_script=..., save=...)` en [service/workflow.py](src/schema_automation/service/workflow.py).
 
-Key layers:
-- **`service/workflow.py`** — Orchestration entry point. `generate_schema()` and `build_schema_from_url()` drive the entire pipeline.
-- **`schema/`** — Builder-per-type pattern. Each builder (e.g., `payment_card.py`) returns a `List[Dict]` of JSON-LD `@graph` nodes. All builders are registered in `SCHEMA_BUILDERS` dict in `schema/__init__.py`. Shared helpers live in `base.py` (`deep_merge`, `build_offer_node`, `build_webpage_node`, etc.).
-- **`extraction/`** — HTML parsing pipeline: `meta.py` (og: tags), `faqs.py` (accordion-specific + fallback strategies), `text.py` (body text).
-- **`infrastructure/http.py`** — HTTP client with tenacity retry (3 attempts, exponential backoff) and requests-cache (15-min TTL, SQLite). Custom error hierarchy: `FetchError` → `PageNotFoundError`, `ServerError`, `RateLimitError`.
-- **`infrastructure/persistence.py`** — Outputs to CSV/JSONL and `<script>` tag generation.
-- **`validation/validator.py`** — JSON-LD structure validator checking schema.org types, required fields, URL formats.
-- **`config.py`** — All hardcoded defaults: organizations, addresses, product specs, offer catalogs. Builders use `deep_merge()` to overlay schema-specific defaults on base config.
-- **`models.py`** — Three dataclasses: `SchemaContext` (input), `ExtractionResult` (extracted metadata), `SchemaRecord` (final output).
+Streamlit Cloud: la app apunta a `streamlit_app.py` en la raíz. Instala las dependencias de `pyproject.toml`.
 
-## Key Patterns
+## Tipos
 
-- **Builder registration:** Add new schema types by creating a `build_*_graph(ctx, **kwargs)` function and registering it in `SCHEMA_BUILDERS` in `schema/__init__.py`.
-- **JSON-LD IDs:** All nodes use `{page_url}#{NodeType}` format for `@id`. Organization references use `@id` pointers, not inline objects.
-- **Config merging:** `deep_merge()` recursively combines base defaults with schema-specific overrides. Defaults are deep-copied to prevent mutation.
-- **FAQ extraction:** Two strategies in `faqs.py` — Naranja X accordion-specific extraction and a generic fallback. Both tried in sequence.
+- **`--schema-type`:** `payment_card`, `loan_or_credit`, `bank_account`, `payment_service`, `investment_or_deposit`, `insurance_agency`, `financial_product`, `blog_posting`, `event`.
+- **`--offer-catalog`:** `prestamos`, `tarjeta_credito`, `seguros`, `comercios`, `cuenta`.
 
-## CI
+## Flujo
 
-GitHub Actions (`.github/workflows/ci.yml`): runs `pytest` on Python 3.11, triggered on push to `main` and all PRs. No linting or type-checking steps configured.
+CLI / Streamlit / MCP → `service/workflow.py` → `infrastructure/http.py` (fetch) → `extraction/` (metadata) → builder de `schema/` → `validation/` → salida (JSON, `<script>` o archivos).
 
-## Schema Types
+## Árbol
 
-`payment_card`, `loan_or_credit`, `bank_account`, `payment_service`, `investment_or_deposit`, `insurance_agency`, `financial_product`, `blog_posting`. Offer catalogs (separate): `prestamos`, `tarjeta_credito`, `seguros`, `cuenta`.
+```
+CLAUDE.md                     índice (este archivo)
+pyproject.toml                dependencias y extras dev / mcp
+requirements.txt              dependencias para entornos sin pip install -e
+streamlit_app.py              entrada de Streamlit Cloud; agrega src/ al path
+mcp_server.py                 servidor MCP por stdio: generar_schema_desde_url, generar_schema_sin_fetch, validar_jsonld, listar_tipos_de_schema
+.github/workflows/ci.yml      pytest en Python 3.11; acepta suite vacía (exit 5)
+.devcontainer/                configuración de dev container
+docs/
+  reglas-jsonld.md            reglas de modelado que aplica el código
+  analisis/
+    2026-06_auditoria-schemas.md              propiedades faltantes por builder y prioridades
+    2026-06_caso-payment-card-tarjeta-naranja.md  JSON-LD propuesto para Tarjeta Naranja X
+src/schema_automation/
+  cli.py                      CLI
+  config.py                   defaults: organizaciones, logo, tasas, catálogos, entidades temáticas
+  models.py                   SchemaContext (entrada), ExtractionResult, SchemaRecord (salida)
+  service/workflow.py         orquestación: build_schema_from_url(), generate_schema()
+  extraction/html.py          parseo del HTML
+  extraction/meta.py          og: tags y meta
+  extraction/faqs.py          FAQs: acordeón de Naranja X, con fallback genérico
+  extraction/text.py          texto del body
+  schema/base.py              helpers compartidos: deep_merge, build_offer_node, build_webpage_node, build_product_node
+  schema/<tipo>.py            un builder por tipo; catalog.py arma el OfferCatalog
+  validation/validator.py     validador de estructura JSON-LD
+  infrastructure/http.py      cliente HTTP: 3 reintentos, cache SQLite de 15 min, errores FetchError y subclases
+  infrastructure/persistence.py  CSV/JSONL y tag <script>
+  interfaces/streamlit_app.py UI de Streamlit
+```
+
+No hay tests. La CI corre `pytest` y acepta la suite vacía.
+
+## Datos que produce
+
+`generate_schema(..., save=True)` acumula resultados en dos archivos:
+
+- **`extracciones.csv`:** `url`, `name`, `title`, `description`, `image`, `faqs_count`, `faqs_json`.
+- **`schemas.jsonl`:** una línea por URL con `url` y `schema`.
+
+Cache HTTP: `schema_automation_cache.sqlite` en la raíz (ignorado por git).

@@ -1,8 +1,10 @@
 # Caso de prueba — PaymentCard "Tarjeta Naranja X"
 
 **URL base:** https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja
-**Fecha de tasas:** vigentes desde 28/05/2026 al 27/06/2026
+**Fecha de tasas:** vigentes del 28/05/2026 al 27/06/2026. Están vencidas: antes de reusar el JSON-LD, tomar las tasas vigentes de la letra chica.
 **Validador objetivo:** [validator.schema.org](https://validator.schema.org/)
+
+JSON-LD propuesto que aplica los faltantes de la [auditoría](2026-06_auditoria-schemas.md) a una landing real. No es output del builder.
 
 ---
 
@@ -27,21 +29,20 @@ El JSON-LD propuesto incluye **dos `Offer` enlazadas al mismo `PaymentCard`** v�
 1. **`#OfferFinanciacionCuotas`** — financiación 2/3/6/9 cuotas (TNA 84,81 %)
 2. **`#OfferPlanZ`** — Plan Z 3 cuotas sin interés (TNA 0 %)
 
-Además se aplican las recomendaciones P0/P1 de la auditoría:
+Además incluye estos faltantes de la auditoría:
 
-- `brand` + `sameAs` + `identifier` en el PaymentCard
+- `brand` en el PaymentCard
 - `interestRate` y `annualPercentageRate` como `QuantitativeValue` con `unitText: PERCENT`
-- `feesAndCommissionsSpecification` apuntando al T&C oficial
-- `termsOfService`
-- `potentialAction` con `ApplyAction` para señal de conversión
+- `feesAndCommissionsSpecification` apuntando a /costos-comisiones-y-limites
+- `termsOfService` apuntando a la misma landing, que enlaza los Términos y Condiciones vigentes
+- `potentialAction` con `ApplyAction` hacia la misma landing, que es donde se pide la tarjeta
 - `category: "FinancialProduct/PaymentCard"`
 - `itemCondition: NewCondition` en cada Offer
 - `eligibleCustomerType` segmentado
 - `audience` con `PeopleAudience`
-- `priceSpecification` con `UnitPriceSpecification` por cada cuota
-- IDs estandarizados a PascalCase
+- `priceSpecification` con `UnitPriceSpecification` por cada tasa
 - WebPage con `inLanguage: es-AR` y `speakable`
-- Sin `price: "0"` (semánticamente incorrecto para una tarjeta)
+- `price: "0"` en cada Offer (ver [reglas-jsonld.md](../reglas-jsonld.md#merchant-listings-search-console))
 
 ---
 
@@ -70,11 +71,6 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
         "name": "Naranja X",
         "logo": "https://images.ctfassets.net/yxlyq25bynna/1IxKUBv3dtISflaWQoSIZW/11e239808ff23ee64b26ba44bfcd93a0/Logo_NX.jpeg"
       },
-      "identifier": {
-        "@type": "PropertyValue",
-        "propertyID": "ProductCode",
-        "value": "NX-CARD-CL"
-      },
       "audience": {
         "@type": "PeopleAudience",
         "audienceType": "Personas mayores de 18 años residentes en Argentina"
@@ -91,27 +87,22 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
         "unitText": "PERCENT",
         "name": "CFT TNA con IVA"
       },
-      "feesAndCommissionsSpecification": "https://www.naranjax.com/legales/tarjeta-credito",
-      "termsOfService": "https://www.naranjax.com/legales/terminos-y-condiciones",
-      "sameAs": [
-        "https://www.linkedin.com/company/naranjax/",
-        "https://www.instagram.com/naranjaxarg/",
-        "https://www.facebook.com/naranjaxarg/"
-      ],
+      "feesAndCommissionsSpecification": "https://www.naranjax.com/costos-comisiones-y-limites",
+      "termsOfService": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja",
       "mainEntityOfPage": {
         "@id": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja#WebPage"
       },
       "image": {
         "@type": "ImageObject",
         "@id": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja#PaymentCardImage",
-        "url": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja/image.jpg"
+        "url": "https://images.ctfassets.net/yxlyq25bynna/5joZPoK23aJEKyz279Z4DP/894cefa974902d2e61e05eda3ec66b9b/TNaranjaHero.png"
       },
       "potentialAction": {
         "@type": "ApplyAction",
         "name": "Solicitar Tarjeta Naranja X",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja/solicitar",
+          "urlTemplate": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja",
           "actionPlatform": [
             "https://schema.org/DesktopWebPlatform",
             "https://schema.org/MobileWebPlatform",
@@ -127,14 +118,7 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
         {
           "@id": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja#OfferPlanZ"
         }
-      ],
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.6",
-        "reviewCount": "1280",
-        "bestRating": "5",
-        "worstRating": "1"
-      }
+      ]
     },
 
     {
@@ -143,6 +127,7 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
       "name": "Financiación en 2, 3, 6 y 9 cuotas con plástico Naranja X / Visa / Mastercard / Amex",
       "description": "TNA 84,81 % — TEA 126,94 % — CFT TNA con IVA 102,6201 % — CFT TEA con IVA 167,70 %. Solo válido para clientes que no registren saldos vencidos impagos.",
       "url": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja",
+      "price": "0",
       "priceCurrency": "ARS",
       "areaServed": {
         "@type": "Country",
@@ -222,6 +207,7 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
       "name": "Plan Z — 3 cuotas sin interés",
       "description": "Plan en Zeta 3 cuotas cero interés. CFT 0,00 % — TNA 0,00 % — TEA 0,00 %.",
       "url": "https://www.naranjax.com/tarjetas-de-credito/tarjeta-naranja",
+      "price": "0",
       "priceCurrency": "ARS",
       "areaServed": {
         "@type": "Country",
@@ -274,7 +260,7 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
       "url": "https://www.naranjax.com/",
       "logo": {
         "@type": "ImageObject",
-        "@id": "https://www.naranjax.com/#LogoTarjetaNaranja",
+        "@id": "https://www.naranjax.com/#Logo",
         "url": "https://images.ctfassets.net/yxlyq25bynna/1IxKUBv3dtISflaWQoSIZW/11e239808ff23ee64b26ba44bfcd93a0/Logo_NX.jpeg",
         "contentUrl": "https://images.ctfassets.net/yxlyq25bynna/1IxKUBv3dtISflaWQoSIZW/11e239808ff23ee64b26ba44bfcd93a0/Logo_NX.jpeg"
       },
@@ -282,12 +268,7 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
         "@type": "PropertyValue",
         "propertyID": "CUIT",
         "value": "30-68537634-9"
-      },
-      "sameAs": [
-        "https://www.linkedin.com/company/naranjax/",
-        "https://www.instagram.com/naranjaxarg/",
-        "https://www.facebook.com/naranjaxarg/"
-      ]
+      }
     },
 
     {
@@ -338,25 +319,23 @@ Además se aplican las recomendaciones P0/P1 de la auditoría:
 
 ## Diferencias vs. lo que genera el builder actual
 
+Builder verificado el 2026-09-25.
+
 | Campo | Builder actual | Caso mejorado |
 |---|---|---|
 | `interestRate` | ❌ ausente | ✅ 84.81 % |
 | `annualPercentageRate` | ❌ ausente | ✅ 102.6201 % |
-| `brand` | ❌ ausente | ✅ Brand "Naranja X" |
-| `sameAs` | ❌ vacío | ✅ 3 perfiles |
-| `identifier` | ❌ ausente | ✅ ProductCode |
-| `feesAndCommissionsSpecification` | ❌ ausente | ✅ URL al T&C |
-| `termsOfService` | ❌ ausente | ✅ URL legales |
-| `potentialAction` | ❌ ausente | ✅ ApplyAction |
+| `brand` | Solo en el `Product` envoltorio | ✅ Brand "Naranja X" en el PaymentCard |
+| `feesAndCommissionsSpecification` | ❌ ausente | ✅ /costos-comisiones-y-limites |
+| `termsOfService` | ❌ ausente | ✅ la landing |
+| `potentialAction` | ❌ ausente | ✅ ApplyAction hacia la landing |
 | `audience` | ❌ ausente | ✅ PeopleAudience |
 | `category` | ❌ ausente | ✅ FinancialProduct/PaymentCard |
 | `offers` | 1 sola con `price: "0"` | ✅ 2 ofertas reales (cuotas + Plan Z) |
 | `priceSpecification` | ❌ ausente | ✅ UnitPriceSpecification por tasa |
 | `itemCondition` | ❌ ausente | ✅ NewCondition |
-| `eligibleCustomerType` | ❌ ausente | ✅ Consumer |
+| `eligibleCustomerType` | ❌ ausente | ✅ Enduser |
 | `eligibleDuration` | ❌ ausente | ✅ 2-9 meses |
 | `seller` en Offer | ❌ ausente | ✅ ref a Organization |
-| WebPage `inLanguage` | ❌ ausente | ✅ es-AR |
 | WebPage `speakable` | ❌ ausente | ✅ con cssSelector |
-| ID convention | `#PaymentCard` mezclado con `#bankaccount` | ✅ PascalCase consistente |
-| `price: "0"` semánticamente incorrecto | ❌ presente | ✅ eliminado |
+| `price: "0"` | ✅ presente | ✅ presente |

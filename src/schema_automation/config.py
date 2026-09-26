@@ -451,9 +451,14 @@ OFFER_CATALOGS: Dict[str, Dict[str, object]] = {
                 "id_suffix": "#PaymentService",
             },
             {
+                "name": "Terminales de cobro",
+                "url": "https://www.naranjax.com/terminales-de-cobro",
+                "id_suffix": "#PaymentService",
+            },
+            {
                 "name": "Plan Z para negocios",
                 "url": "https://www.naranjax.com/planz-negocios",
-                "id_suffix": "#PaymentService",
+                "id_suffix": "#FinancialProduct",
             },
             {
                 "name": "Cuenta Negocio",
